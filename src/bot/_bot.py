@@ -70,9 +70,14 @@ class TelegramBot:
         for handler in handlers:
             self._application.add_handler(handler)
 
-    # Callable[[Update, CallbackContext], None]
-    def run(self):
+    def daily_job(self, callback, time):
+        """Add a daily job to the bot's job queue."""
+        if self._application.job_queue:
+            self._application.job_queue.run_daily(callback, time=time)
 
+        return self
+
+    def run(self):
         # self._application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
         if self._mode == 'pull':

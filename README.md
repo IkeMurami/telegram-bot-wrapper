@@ -9,3 +9,20 @@
 - преобразовать настройку бота в плоский список параметров конструктора
 
 PS: возможно, это не будет лучше, чем исходный пакет, но для меня будет понятнее как использовать его :)
+
+## Build and run
+
+Install
+
+```
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install "."
+```
+
+Put a telegram bot token to `examples/.env`
+
+```
+cd examples
+python -B main.py
+```

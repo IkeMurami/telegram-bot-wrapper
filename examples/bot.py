@@ -1,5 +1,8 @@
 from ikemurami.telegram import telegram_bot
 import logging
+import random
+import pytz
+from datetime import datetime, time
 
 from functools import wraps
 
@@ -9,7 +12,8 @@ from telegram.ext import (
     TypeHandler,
     MessageHandler,
     CommandHandler,
-    filters
+    filters,
+    ContextTypes,
 )
 
 
@@ -76,6 +80,40 @@ async def echo_handler(update, context):
         await update.message.reply_text(update.message.text)
 
 
+async def send_scheduled_message(context: ContextTypes.DEFAULT_TYPE):
+    """Send a random message to all subscribed users."""
+    MESSAGES = [
+        'Hi, giraffe!',
+        'Hi, begemoth!'
+    ]
+    random_message = random.choice(MESSAGES)
+    # Send to all users
+    for user_id in list(USERS): 
+        try:
+            await context.bot.send_message(chat_id=user_id, text=random_message)
+            print(f'Scheduled message sent to {user_id}')
+        except Exception as e:
+            print(f'Failed to send message to {user_id}: {e}')
+            # Optionally remove users that can't be reached
+            # USERS.remove(user_id)
+
+
+def scheduled_time():
+    # Schedule for 2:00 AM Moscow time every day (the function will check if it's Thursday)
+    moscow_time = pytz.timezone('Europe/Moscow')
+
+    # Convert 2:00 AM Moscow time to UTC for scheduling
+    # First create a full datetime object in Moscow time zone
+    now = datetime.now(moscow_time)
+    target_datetime = moscow_time.localize(
+        datetime.combine(now.date(), time(hour=2, minute=20))
+    )
+    # Convert to UTC time for the scheduler
+    target_time_utc = target_datetime.astimezone(pytz.UTC).time()
+
+    return target_time_utc
+
+
 def main():
     _ = (
         telegram_bot(
@@ -95,6 +133,10 @@ def main():
             ],
             short_description='Test bot',
             # full_description='Telegram bot by IkeMurami',
+        )
+        .daily_job(
+            send_scheduled_message,
+            scheduled_time()
         )
         .run()
     )
